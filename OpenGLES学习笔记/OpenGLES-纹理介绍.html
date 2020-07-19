@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGLES 纹理介绍</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">OpenGLES 纹理介绍</h1>
+        <div class="show-content">
+          <p>一、纹理基础</p><p>3D图形渲染中最基本的操作就是对一个表面应用纹理。纹理可以表现只从网格的几何形状无法得到的附加细节。</p><p>纹理的形式：2D纹理、2D纹理数组、3D纹理和立方图纹理</p><p>纹理通常使用纹理坐标应用到一个表面，纹理坐标可以视为纹理数组数据中的索引。</p><p><b>2D纹理</b></p><p>2D纹理是最基本和常用的纹理形式，是一个图像的二维数组，一个纹理的单独数据元素作为“纹素”</p><p>2D纹理的纹理坐标用一对2D坐标(s, t)表示， 也称做(u, v)坐标</p><p><b>纹理的基本格式</b></p><p>格式                                                纹素数据描述</p><p>GL_RED                                          (红)</p><p>GL_RG                                            (红， 绿)</p><p>GL_RGB                                          (红， 绿， 蓝)</p><p>GL_RGBA                                        (红， 绿， 蓝， Alpha)</p><p>GL_LUMINANCE                             (亮度)</p><p>GL_LUMINANCE_ALPHA                 (亮度，Alpha)</p><p>GL_ALPHA                                       (Alpha)</p><p>GL_DEPTH_COMPONENT                (深度)</p><p>GL_DEPTH_STENCIL                         (深度， 模板)</p><p>GL_RED_INTEGER                             (整数红)</p><p>GL_RG_INTEGER                               (整数红， 整数绿)</p><p>GL_RGB_INTEGER                             (整数红， 整数绿， 整数蓝)</p><p>GL_RGBA_INTEGER                           (整数红， 整数绿， 整数蓝， Alpha)</p><p>纹理图像的左下角由st坐标(0.0, 0.0)指定，右上角由st坐标(1.0, 1.0)指定。</p><p><b>立方图纹理</b></p><p>由6个单独2D纹理面组成的纹理。3D立方图由多种高级使用方式，但最常用的是所谓的环境贴图特效。</p><p><b>3D纹理</b></p><p>3D纹理可以看作是2D纹理多个切片的一个数组，它用一个3元(s, t, r)坐标访问，这与立方图很相似</p><p><b>2D纹理数组</b></p><p>2D纹理数组与3D纹理相似，但用途不同。3D纹理过滤发生在切片之间，2D纹理数组的读取只从一个单独的切片采样。mip贴图也不一样。</p><p><b>纹理对象和纹理的加载</b></p><p>1、创建一个纹理对象。纹理对象是一个容器对象，保存玄滩所需要的纹理数据。纹理对象用一个无符号整数表示，使用的函数是 glGenTextures:</p><p>void glGenTextures(GLsizei n, GLuint *textures);</p><p>参数说明：</p><p>n : 指定要生成后的纹理对象数量</p><p>textures ： 保存 n 个纹理对象ID的无符号整形数组</p><p>当不再需要的时候，也可以删除。删除函数是 glDeleteTextures(GLsizei n, GLuint *textures)</p><p>2、生成纹理对象ID之后，需要对纹理对象ID进行绑定操作。使用函数是glBindTexture</p><p>void glBindTexture(GLenum target, GLuint texture);</p><p>参数说明：</p><p>target : 将纹理对象绑定到GL_TEXTURE_2D、GL_TEXTURE_3D、GL_TEXTURE_2D_ARRAY、GL_TEXTURE_CUBE_MAP目标</p><p>texture ： 需要绑定的纹理对象句柄</p><p>绑定纹理目标后，纹理对象在删除之前一直绑定到它的目标上。</p><p>3、使用纹理的下一个步骤是真正地加载图像数据。用于加载2D和立方图纹理的基本函数是glTexImage2D，此外，可以使用多种替代方法指定2D纹理，包括不可变纹理(glTexStorage2D) 和 glTexSubImage2D 的节后。</p><p>void glTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels)</p><p>参数说明：</p><p>level : 指定要加载的mip级别。第一个是0，后续的mip贴图级别递减。</p><p>internalFormat ： 纹理存储的内部样式；可以是未确定大小的基本内部样式，或者是确定大小的内部样式。</p><p>未确定大小的内部格式有：</p><p>GL_RGBA、GL_RGB、GL_LUMINANCE_ALPHA、GL_LUMINANCE、GL_ALPHA</p><p>其他为确定大小的内部格式</p><p>width ： 图像的像素宽度</p><p>height ： 图像的像素高度</p><p>format ： 输入的纹理数据格式，格式为基本的纹理格式</p><p>type： 输入像素数据的类型， 可以是 GL_UNSIGNED_BYTE、GL_BYTE、GL_UNSIGNED_SHORT、GL_SHORT、GL_UNSIGNED_INT、GL_FLOAT等基本像素格式</p><p>pixels 包含图像的实际想素数据。数据必须包含 (width * height * 深度) 个像素，像素行必须对齐到用glPixelStorei 设置的GL_UNPACK_ALIGNMENT</p><p>void glPixelStorei(GLenum pname, GLint param)</p><p>pname ： 指定设置的像素存储类型。</p><p>下面的选项影响调用glTexImage2D、glTexImage3D、glTexSubImage2D 和 glTexSubImage3D 时数据从内存中解包的方式：</p><p>GL_UNPACK_ROW_LENGTH，GL_UNPACK_IMAGE_HEIGHT，GL_UNPACK_SKIP_PIXELS, GL_UNPACK_SKIP_ROWS， GL_UNPACK_SKIP_IMAGES, GL_UNPACK_ALIGNMENT</p><p>下面选项影响glReadPixels时数据打包到内存中的方式：</p><p>GL_PACK_ROW_LENGTH，GL_PACK_IMAGE_HEIGHT，GL_PACK_SKIP_PIXELS, GL_PACK_SKIP_ROWS， GL_PACK_SKIP_IMAGES, GL_PACK_ALIGNMENT</p><p>param ： 指定解包或包装选项的整数值</p><p>整个纹理对象创建和加载的过程如下：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-c70be29026a8b652.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-c70be29026a8b652.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>纹理过滤和mip贴图</p><p>纹理坐标用于生成一个2D索引，以从纹理贴图中读取，但设置为GL_NEAREST是，就会发生点采样/最近采样。 最近采样可能产生严重的视觉伪像，这是因为三角形在屏幕空间中变得较小，在不同像素间的插值，纹理坐标有较大的跳跃。解决此类伪像的方案是mip贴图(mipmapping). mip贴图的思路是在构建一个图像链——mip贴图链。</p><p>纹理渲染时发生两种过滤：缩小与放大。</p><p>缩小发生在屏幕上投影的多边形小于纹理尺寸的时候，即纹理尺寸要大于显示区域的大小</p><p>放大发生在屏幕上投影的多边形大于纹理尺寸的时候，即纹理尺寸不够填充显示区域时</p><p>对于放大，mip贴图不起作用，因为我们总是从最大的可用级别进行采样。对于缩小，则可以使用不同的采样模式。</p><p>过滤模式用glTexParameter指定</p><p>glTexParameteri(GLenum target, GLenum pname, GLint param)</p><p>glTexParameteriv(GLenum target, GLenum pname, const GLint * params)</p><p>glTexParameterf(GLenum target, GLenum pname, GLint param)</p><p>glTexParameterfv(GLenum target, GLenum pname, const GLint * params)</p><p>参数说明：</p><p>target ： 纹理目标可以是GL_TEXTURE_2D、GL_TEXTURE_3D、GL_TEXTURE_2D_ARRAY、GL_TEXTURE_CUBE_MAP</p><p>pname : 设置参数，可以是 GL_TEXTURE_BASE_LEVEL、GL_TEXTURE_COMPARE_FUNC、GL_TEXTURE_COMPARE_MODE、GL_TEXTURE_MIN_FILTER、GL_TEXTURE_MAG_FILTER、GL_TEXTURE_MIN_LOD、GL_TEXTURE_MAX_LOD、GL_TEXTURE_MAX_LEVEL等</p><p>params 纹理参数设置值</p><p>例子，加载一个2d mip贴图链</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-a9ac06b0d4177ed9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-a9ac06b0d4177ed9.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-91a27d0ac5b2532c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-91a27d0ac5b2532c.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-429e72b73605c2b5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-429e72b73605c2b5.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-d57a48e2b04ff17e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-d57a48e2b04ff17e.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>运行程序，得到的mipmap2d效果是这样的：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-73693fc6e8d7784e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-73693fc6e8d7784e.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>无缝立方图过滤</p><p>3.0的新变化，就是立方图过滤现在是无缝的，各个面的边缘能够形成更平滑的过滤。</p><p>自动贴图生成</p><p>3.0提供了glGenerateMipmap自动生成mip贴图的机制</p><p>void glGenerateMipmap(GLenum target)</p><p>参数说明：</p><p>target ： 为之生成mip贴图的纹理目标, GL_TEXTURE_2D、GL_TEXTURE_3D、GL_TEXTURE_2D_ARRAY 或 GL_TEXTURE_CUBE_MAP</p><p>纹理坐标包装</p><p>用于指定纹理坐标超出[0.0, 1.0]范围时所发生的行为，用glTexParameter设置</p><p>包装模式如下：</p><p>GL_REPEAT     重复纹理</p><p>GL_CLAMP_TO_EDGE 限定读取纹理的边缘</p><p>GL_MIRRORED_REPEAT 重复纹理和镜像</p><p>注意，纹理包装模式也影响过滤行为。当纹理坐标在纹理的边缘时，线性过滤核心可能越过纹理的边缘。这种情况下，包装模式将决定对于核心在纹理边缘外的部分要读取哪些纹素</p><p>我们来看看示例，在2d mip贴图基础上修改</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-8cd3f481a2b86b14.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-8cd3f481a2b86b14.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-d61118f4e9a2c0a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-d61118f4e9a2c0a3.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>运行程序，得到的效果如下：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-33c57cd7f1e428f1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-33c57cd7f1e428f1.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>纹理调配</p><p>纹理调配控制输入的R、RG、RGB或RGBA纹理中的颜色分量在着色器中读取时如何映射到分量。</p><p>纹理细节级别</p><p>在所有纹理mip贴图级别可用之前就能够开始显示场景是很实用的。</p><p>深度纹理对比（百分比渐进过滤）</p><p>GL_TEXTURE_COMPARE_FUNC 和 GL_TEXTURE_COMPARE_MODE 参数是为了提供百分比渐进过滤(PCF)功能，执行阴影贴图技术时，片元着色器需要比较一个片段的当前深度值和深度纹理中的深度值，确定片元是在阴影之内还是之外。过滤需要在采样深度值与参考值比较之后发生，否则会产生锯齿。</p><p>GL_TEXTURE_COMPARE_MODE 默认是GL_NONE，当它被设置为GL_COMPARE_REF_TO_TEXTURE时，(s, t, r)的r坐标与深度纹理的值比较，然后将比较结果作为阴影纹理读取的结果。比较函数用GL_TEXTURE_COMPARE_FUNC设置，可以设置为GL_LEGUAL、GL_GEQUAL、GL_LESS、GL_GREATER、GL_EQUAL、GL_NOTEQUAL、GL_ALWAYS、GL_NEVER</p><p>纹理格式</p><p>OpenGLES 3.0 中的格式数量比 OpenGLES 2.0 增加了许多。如果纹理用未确定大小的格式指定，则OpenGLES 可以自由选择纹理数据存储的内部表现形式，否则将选择至少与指定位数相同的格式。</p><p>浮点纹理格式</p><p>OpenGLES 3.0 引入</p><p>整数纹理格式</p><p>允许纹理规范在片元着色器中以整数形式读取。不可过滤。但是R、RG和RGBA变种可以用作帧缓冲区对象中渲染的颜色附着(color attachment)，此时忽略Alpha混合状态。</p><p>共享指数纹理格式</p><p>共享指数纹理是为不需要浮点纹理使用的那么多深度位数的RGB纹理提供的一种存储方式。通常用于高动态(HDR)图像，这种图像不需要半浮点或全浮点数。</p><p>sRGB纹理格式</p><p>OpenGLES3.0引入。大部分图像存储实际上都是sRGB颜色空间，这种非线性颜色空间使得人类能够在不同亮度级别更好地区分颜色。</p><p>深度纹理格式</p><p>允许应用程序从帧缓冲区对象的深度附着中读取深度值，在高级渲染算法中作用比较大。</p><p>在着色器中使用纹理</p><p>1、vertex shader</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-9d76d5432d55de2d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-9d76d5432d55de2d.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>2、fragment shader</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-c209975853925fdc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-c209975853925fdc.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>顶点着色器以一个二分量纹理坐标作为顶点输入，并将其作为输出传递给片元着色器。片元着色器消费该纹理坐标，并将其用于纹理读取。片元着色器声明一个类型为sampler2D的统一变量s_texture，采样器是用于从纹理贴图中读取的统一变量加载一个指定纹理绑定的纹理单元的数值。在openGLES中，纹理用glActiveTexture函数绑定到纹理单元。</p><p>3、接下来就是绘制过程，如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-ec885fc64362a8bb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-ec885fc64362a8bb.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>4、绘制完成后，运行程序我们可以看到屏幕上绘制的画面：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-271f86875004ec4f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-271f86875004ec4f.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>使用立方图纹理示例</p><p>上面介绍完2D纹理，接下来我们介绍一下立方图纹理的绘制</p><p>创建texture</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-65bf42a9e10ebbcc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-65bf42a9e10ebbcc.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>加载glsl</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-3dd95ce88b1b2076.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-3dd95ce88b1b2076.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>vertex：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-d3201f139f3a687c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-d3201f139f3a687c.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>fragment：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-c974188ff081021e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-c974188ff081021e.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>绘制</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-30a24d603157c1aa.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-30a24d603157c1aa.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>运行程序，效果如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-c9c41797da973f67.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-c9c41797da973f67.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>加载3D纹理和2D纹理数组</p><p>加载3D纹理和2D纹理数组的函数是glTexImage3D，它与glTexImage2D很类似。</p><p>void glTexImage3D(GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void * pixels);</p><p>参数说明：</p><p>target ： 指定纹理目标。应该为GL_TEXTURE3D或GL_TEXTURE_2D_ARRAY</p><p>level ：指定加载的mip级别。0 表示基本级别，更大的数值表示各个后续的mip贴图级别</p><p>internalFormat ： 纹理存储的内部格式。可以是未确定大小的基本内部格式或确定大小的内部格式</p><p>width ： 以像素表示的图像宽度</p><p>height ： 以像素表示的图像高度</p><p>depth ： 3D纹理的切片数量</p><p>border ： 这个参数是在OpenGLES 被忽略，它是为了与桌面OpenGL接口兼容二保持的，应该为0</p><p>format ：输入纹理数据的格式</p><p>type ： 输入像素数据的类型</p><p>pixels ： 包含图像的实际像素数据。这些数据必须包含 width * height * depth 个像素，每个像素根据格式和类型规则有相应数量的字节。图像数据应该按照2D纹理切片的顺序存储。</p><p>二、压缩纹理</p><p>压缩纹理可以减少纹理在设备上的内存占用。其次，压缩纹理节约了着色器中读取纹理时消耗的内存带宽。最后压缩纹理减少必须存储的图像数据，从而减少了应用程序的下载大小。</p><p>OpenGLES 3.0 引入了必须支持的标准纹理压缩格式 —— ETC2 和 EAC。</p><p>用于加载2D 纹理和立方图压缩图像数据的函数是 glCompressedTexImage2D， 用于2D纹理数组的对应函数是glCompressedTexImage3D。ETC2/EAC不支持3D纹理，但可以加载供应商专用的3D纹理压缩格式</p><p>三、纹理子图像规范</p><p>用glTexImage2D 上传纹理图像之后，可以更新图像的各个部分。加载2D纹理图像其中一部分的函数是glTexSubImage2D。</p><p>void glTexImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);</p><p>target ： 指定纹理目标，可以是GL_TEXTURE_2D或者立方图面目标之一(GL_TEXTURE_CUBE_MAP_POSITIVE_X、GL_TEXTURE_CUBE_MAP_NEGATIVE_X等)</p><p>level ：指定更新的mip级别</p><p>xoffset ：开始更新的纹素x索引</p><p>yoffset ：开始更新的纹素y索引</p><p>width ：更新图像子区域宽度</p><p>height ： 更新图像子区域高度</p><p>format ： 输入纹理格式</p><p>type ： 输入像素数据的类型</p><p>pixels ： 包含图像子区域的实际像素数据</p><p>更新压缩的2D纹理图像的子区域 —— glCompressedTexSubImage2D</p><p>四、从颜色缓冲区复制纹理数据</p><p>OpenGLES3.0 支持的另一个纹理功能是从颜色缓冲区复制数据到一个纹理。</p><p>由于OpenGLES 3.0 只支持双缓冲EGL可显示表面，因此，所有在显示器上绘图的OpenGLES程序都有一个既用于前台显示又用于后台缓冲区的颜色缓冲区。这个缓冲区当前是前台还是后台缓冲区，有对eglSwapBuffers 的最近一次调用决定。当从可显示EGL表面的颜色缓冲区 中复制图像数据时，总是会复制后台缓冲区的内容。如果渲染到一个EGLpbuffer，则复制将发生在pbuffer表面。如果渲染到一个帧缓冲区对象， 则所复制的帧缓冲区对象的颜色附着通过调用带GL_COLOR_ATTACHENT参数的glReadBuffer函数设置。</p><p>void glReadBuffer(GLenum mode)</p><p>mode : 指定读取的颜色缓冲区。这将为未来的glReadPixels、glCopyTexImage2D、glCopyTexSubImage2D 和 glCopyTexSubImage3D调用设置源颜色缓冲区。该值可能为GL_BACK、GL_COLOR_ATTACHMENT 、GL_NONE</p><p>从颜色缓冲区复制到纹理的函数是glCopyTexImage2D、glCopyTexSubImage2D 和 glCopyTexSubImage3D</p><p>使用时需要注意，纹理图像格式的分量不能多于颜色缓冲区。复制到颜色缓冲区的数据时，可以转换为分量较少的格式，但是不能转换为分量较多的格式。</p><p>五、采样器对象</p><p>glTexParameter设置纹理参数可能造成大量不必要的API开销。每个纹理对象设置采样器成相同的状态造成大量额外的开销，为了缓解这个问题，引入了采样器对象。将采样器状态与纹理状态分离。采样器对象可以用于许多纹理，降低API开销。</p><p>1、用于生成采样器对象的函数是 glGenSamplers</p><p>void glGenSamplers(GLsizei n, GLuint *samplers)</p><p>n : 指定生成的采样器对象数量</p><p>samplers ： 一个无符号整数数组，将容纳 n 个采样器对象ID</p><p>void glDeleteSamplers(GLsizei n, const GLuint *samplers)</p><p>n : 指定要删除的采样器对象</p><p>samplers ：一个无符号整数数组，容纳要删除的n个采样器对象ID</p><p>2、生成采样器对象ID后，应用程序必须绑定采样器对象以使用其状态。采样器对象绑定到纹理单元，取代glTexParameter进行的所有纹理对象状态设置。用于绑定采样器对象的函数是glBindSampler</p><p>void glBindSampler(GLenum unit, GLuint sampler)</p><p>unit : 指定采样器绑定到的纹理单元</p><p>sampler ： 所要绑定的采样器对象的句柄</p><p>六、不可变纹理</p><p>不可变纹理是OpenGLES 3.0 中引入的另一种有助于改进应用程序的功能是不可变纹理。使用glTexImage2D 和 glTexImage3D 等函数独立地指定纹理的每个mip贴图级别。这对OpenGLES驱动程序造成的问题是驱动程序在绘图之前无法确定纹理是否已经完全指定。必须检查每个mip贴图级别或子图像的格式是否相符、每个级别的大小是否正确以及是否有足够的内存。绘图时检查的代价可能会很高，使用不可变纹理可以避免这种情况。</p><p>一旦纹理不可变，格式和大小不会在变化。但可以通过使用glTexImage2D、glTexSubImage3D、glGenerateMipMap 或者渲染到纹理加载图像数据。</p><p>使用glBindTexture 绑定纹理后，用glTexStorage2D 或glTexStorage3D 分配不可变存储，即可创建不可变纹理。</p><p>创建不可变纹理后，在纹理对象上调用glTexImage、glCompressedTexImage、glCopyTexImage 或glTexStorage 都会无效，包GL_INVALID_OPERATION错误。</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

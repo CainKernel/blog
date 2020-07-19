@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGL以及OpenGLES命令</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">EGL以及OpenGLES命令</h1>
+        <div class="show-content">
+          <p>OpenGLES命令需要渲染上下文和绘制表面。渲染上下文存储相关的OpenGLES 状态。绘制表面时用于绘制图元的表面，它指定渲染所需要的缓冲区类型。绘制表面还需要制定所需要的缓冲区的位深度。<br></p><p>EGL是Khronos渲染API与原生窗口系统之间的接口。iOS支持OpenGLES但不支持EGL。</p><p><b>OpenGLES应用程序必须在渲染之前私用EGL执行以下任务：</b></p><p>查询并初始化设备可用的显示器。</p><p>创建渲染表面。</p><p>创建渲染上下文。</p><p><b>库和包含文件</b></p><p>库：libGLESv2.lib 和EGL库libEGL.lib</p><p>头文件：</p><p>#include &lt;EGL/egl.h&gt;</p><p> #include &lt;GLES3/gl3.h&gt;</p><p>选择性包含 #include &lt;GLES3/gl2ext.h&gt;，这里是扩展列表的头文件</p><p><b>EGL命令语法</b></p><p>所有命令都以egl开头，每个单词首字母大写</p><p><b>数据类型：</b></p><p>32位整数 —— EGLint</p><p>32位无符号整数 —— EGLenum、EGLBoolean</p><p>指针 —— EGLConfig、EGLContext、EGLDisplay、EGLSurface、EGLClientBuffer</p><p><b>OpenGLES命令语法</b></p><p>所有命令以gl开头，每个单词首字母大写</p><p>有些命令可能采用不同风格的参数。风格活着类型根据采用的参数数量、参数使用的数据类型(字节b，无符号字节ub，短整数s，无符号短整数us，整数i，浮点数f)以及参数是否以向量v形式传递而各不相同。</p><p><b>错误处理：</b></p><p>GLenum glGetError(void)</p><p>基本错误代码：</p><p>GL_NO_ERROR    没有任何错误</p><p>GL_INVALID_ENUM 超出GLenum范围</p><p>GL_INVALID_VALUE 数值型参数超出范围。</p><p>GL_INVALID_OPERATION 特定命令在当前OpenGLES状态下不能执行。</p><p>GL_OUT_OF_MEMORY 内存不足时执行该命令。未定义？</p><p><b>基本状态管理：</b></p><p>void glEnable(GLenum cap)</p><p>void glDisable(GLenum cap)</p><p>cap：</p><p>GL_BLEND</p><p>GL_CULL_FACE</p><p>GL_DEPTH_TEST</p><p>GL_DITHER</p><p>GL_POLYGON_OFFSET_FILL</p><p>GL_PRIMITIVE_RESTART_FIXED_INDEX</p><p>GL_RASTERIZER_DISCARD</p><p>GL_SAMPLE_ALPHA_TO_COVERAGE</p><p>GL_SAMPLE_COVERAGE</p><p>GL_SCISSOR_TEST</p><p>GL_STENCIL_TEST</p><p>检查某个状态目前启用还是禁用</p><p>GLboolean glIsEnable(GLenum cap)</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

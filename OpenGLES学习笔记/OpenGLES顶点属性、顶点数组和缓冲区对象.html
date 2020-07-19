@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGLES顶点属性、顶点数组和缓冲区对象</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">OpenGLES顶点属性、顶点数组和缓冲区对象</h1>
+        <div class="show-content">
+          <p>顶点属性数据可以用一个顶点数组对每个顶点指定，也可以将一个常量值用于一个图元的所有顶点</p><p>OpenGLES支持最少16个顶点属性。准确查询顶点数量方法如下：</p><p>GLint maxVertexAttribs;</p><p>glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &amp;maxVertexAttribs);</p><p>一、指定顶点数组</p><p>1、常量顶点属性：</p><p>常量顶点属性对于一个图元的所有顶点都相同，所以对一个图元的所有顶点只需指定一个值。函数如下：</p><p>void glVertexAttrib1f(GLuint index, GLfloat x);</p><p>void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y);</p><p>void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z);</p><p>void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);</p><p>void glVertexAttrib1fv(GLuint index, GLfloat x);</p><p>void glVertexAttrib2fv(GLuint index, GLfloat x, GLfloat y);</p><p>void glVertexAttrib3fv(GLuint index, GLfloat x, GLfloat y, GLfloat z);</p><p>void glVertexAttrib4fv(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);</p><p>glVertexAttrib* 命令用于加载index 指定的通用顶点属性。</p><p>2、顶点数组</p><p>顶点数组指定每个顶点的属性，是保存应用程序地址空间的缓冲区。他们作为顶点缓冲对象的基础，提供指定顶点属性数据的一个高效、灵活的手段。</p><p>void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *ptr);</p><p>void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *ptr);</p><p>index - 指定通用顶点属性索引。</p><p>size - 顶点数组中为索引引用的顶点属性所指定的分量数量。</p><p>type - 数据格式，两条函数均有的值：GL_BYTE，GL_UNSIGNED_BYTE，GL_SHORT，GL_UNSIGNED_SHORT，GL_INT，GL_UNSIGNED_INT，glVertexAttribPointer还包括GL_HALF_FLOAT，GL_FLOAT，GL_FIXED，GL_INT_2_10_10_10_REV，GL_UNSIGNED_INT_2_10_10_10_REV</p><p>normalized - 用于表示非浮点数据格式类型在转换为浮点值时是否应该规范化。对于glVertexAttribIPointer来说，这些值被当作整数对待</p><p>stride - 每个顶点由size指定顶点属性分量顺序存储。stride指定顶点索引 表示顶点数据之间的位移，大于0，表示使用该值作为下一个索引表示的顶点数据的跨距。</p><p>ptr - 如果使用客户端顶点数据，则保存顶点属性数据的缓冲区的指针，如果使用顶点缓冲区对象，则表示该缓冲区内的偏移量。</p><p>分配和存储顶点属性数据有两种常用的方法：</p><p>在一个缓冲区中存储顶点属性 —— 这种方法称为结构数组。结构表示顶点的所有属性，每个顶点有一个属性的数组。结构数组的分配方法通常是最高效的。</p><p>在单独的缓冲区中保存每个顶点属性 —— 这个方法称为数组结构。</p><p>顶点属性使用哪种数据格式</p><p>glVertexAttribPointer 中用type参数指定的顶点属性数据格式不仅影响顶点属性数据的图形内存存储需求，而且影响整体性能。OpenGLES 3.0开始支持GL_HALF_FLOAT 的16位浮点顶点格式，建议尽可能使用GL_HALF_FLOAT，即纹理、坐标、法线、副法线、切向量等使用GL_HALF_FLOAT，颜色存储为GL_UNSIGNED_BYTE，每个顶点颜色具有4个分量。</p><p>glVertexAttribPointer中规范化标志是如何工作的？</p><p>在用于顶点着色器之前，顶点属性在内部保存为单精度浮点数。如果数据类型表示顶点属性不是浮点数，顶点属性将在用于顶点着色器之前转换为单精度浮点数。规范化标志控制非浮点数顶点属性数据到单精度浮点值的转换，标志为假时，顶点数据被肢解转换为浮点数，如果为真且数据类型为GL_BYTE、GL_SHORT、GL_FIXED，则顶点数据被映射到[-1.0, 1.0]范围内，如果数据类型为GL_UNSIGNED_BYTE或GL_UNSIGNED_SHORT，则被映射到[0.0, 1.0]范围内。如果想要按照整数的形式访问整数型顶点，应该使用glVertexAttribIPointer。</p><p>常量顶点属性和顶点数组之间选择</p><p>glEnableVertexAttribArray 和 glDisableVertexAttribArray 命令分别用于启用和禁用通用顶点属性数组。</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-1f6833d057ce6a90.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-1f6833d057ce6a90.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>二、在顶点着色器中声明顶点属性变量</p><p>属性变量也可以选择包含一个布局限定符，提供属性索引。示例：</p><p>layout(location = 0) in vec4 a_postion;</p><p>layout(location = 1) in vec2 a_texcoord;</p><p>layout(location = 2) in vec3 a_normal;</p><p>顶点着色器中声明为顶点属性的变量是只读变量，不能修改。属性可以在顶点着色器内部声明，不使用不会被认为是活动属性，着色器属性数量不能大于GL_MAX_VERTEX_ATTRIBS，否则无法被链接。</p><p>将顶点属性绑定到顶点着色器中的属性变量</p><p>顶点属性由in限定符指定，活动属性数量可以用glGetProgramiv查询，程序中活动属性列表可以用glGetActiveAttrib查询。</p><p>指定通用顶点属性和绑定到顶点着色器中的属性名称：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-f75e07f48e91321a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-f75e07f48e91321a.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>OpenGLES3.0中，可以使用3种方法将通用顶点属性索引映射到顶点着色器中的一个属性变量名称。</p><p>1、索引在源码中用layout(location = N)声明指定</p><p>2、OpenGLES3.0将通用顶点属性索引绑定到属性名称</p><p>3、应用程序可以将顶点属性索引绑定到属性名称</p><p>使用glBindAttribLocation命令可以将通用顶点属性索引绑定到顶点着色器中的一个属性变量。这种绑定在下一个程序链接时生效——不会改变当前链接的程序中使用的绑定。</p><p>另外，也可以使用glGetAttribLocation命令查询分配的绑定，需要在返回program定义的程序独享最后一次链接时绑定到属性变量的通用属性索引。</p><p>三、顶点缓冲区对象</p><p>顶点数组指定的顶点数据保存在客户内存中。在进行glDrawArrays活着glDrawElements等绘图调用时，这些数据必须同客户内存复制到图形内存。</p><p>没必要每次绘图时都复制顶点数据，而是在图形内存中缓存这些数据，这样可以显著改善渲染性能，也可以降低内存带宽和电力消耗需求。这就是顶点缓冲区对象发挥作用的地方。</p><p>不紧紧是顶点数据，描述图元顶点索引、作为glDrawElements参数传递的元素索引也可以缓存。</p><p>GL_ARRAY_BUFFER 指定的数组缓冲区对象用于创建保存顶点数据的缓冲区对象。</p><p>GL_ELEMENT_ARRAY_BUFFER 指定的元素数组缓冲区对象用于保存图元索引的缓冲区对象。</p><p>创建和绑定顶点缓冲区对象例子：</p><p>void initVertexBufferObjects(vertex_t *vertexBuffer,</p><p>GLushort *indices,</p><p>GLuint numVertices,</p><p>GLuint numIndices,</p><p>GLuint *vboIds) {</p><p>// 获取vboIds中两个未用的缓冲区对象名称。然后vboIds返回的未使用的缓冲区对象名称用于创建一个数组缓冲区对象</p><p>// 和一个元素数组缓冲区对象。数组缓冲区对象用于保存一个或多个图元的顶点属性数据。</p><p>glGenBuffers(2, vboIds);</p><p>glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);</p><p>glBufferData(GL_ARRAY_BUFFER, numVertices *sizeof(vertex_t),</p><p>vertexBuffer, GL_STATIC_DRAW);</p><p>glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIds[1]);</p><p>glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices *sizeof(GLushort),</p><p>indices, GL_STATIC_DRAW);</p><p>}</p><p>glGenBuffers(GLsizei n, GLuint * buffers) ：分配n个缓冲区对象名称，并在buffers中返回它们。</p><p>glBindBuffer 用于指定当前缓冲区对象。第一次通过调用glBindBuffer绑定缓冲区对象名称时，缓冲区对象可以默认状态分配；如果分配成功，则分配的对象绑定微目标的当前缓冲区对象。</p><p>glBufferData 用于创建和初始化顶点数组或元素数组</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

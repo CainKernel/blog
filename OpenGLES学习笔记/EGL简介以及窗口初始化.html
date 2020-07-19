@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGL简介以及窗口初始化</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">EGL简介以及窗口初始化</h1>
+        <div class="show-content">
+          <p>屏幕上可见的帧缓冲区由一个像素数据的二维数组表示。直接在可显示缓冲区上更新像素由一个严重的问题——用户在部分更新帧缓冲区时看到伪像或者闪烁的现象</p><p>为了解决这个问题，引入了双缓冲区。</p><p>OpenGLES应用程序中，这种活动通过EGL函数eglSwapBuffers控制：</p><p>eglSwapBuffers(exContext-&gt;eglDisplay, esContext-&gt;eglSurface);</p><p>EGL提供以下机制：</p><p><b>与设备的原生窗口系统通信</b></p><p><b>查询绘图表面的可用类型和配置</b></p><p><b>创建绘图表面</b></p><p>在OpenGLES3.0和其它图形渲染API(如桌面OpenGL和OpenVG——硬件加速矢量图形的跨平台API，活着窗口系统的原生绘图命令)之间同步渲染</p><p>管理纹理贴图等渲染资源</p><p>与窗口系统通信</p><p>Apple提供自己的EGL API的iOS 实现，称为EAGL</p><p>因为每个窗口系统都有不同语义，所以EGL提供基本的不透明类型——EGLDisplay，该类封装了所有系统相关性，用于和原生窗口系统接口交互。</p><p>任何使用EGL的应用程序必须执行的第一个操作是创建和初始化与本地EGL显示的连接。</p><p><b>一、初始化EGL</b></p><p>EGLConfig config;</p><p>EGLint majorVersion;</p><p>EGLint minorVersion;</p><p>EGLint contextAttribs[] = {</p><p>EGL_CONTEXT_CLIENT_VERSION,        3,        EGL_NONE</p><p>};</p><p>// 获取宽和高</p><p>esContext-&gt;width = ANativeWindow_getWidth(esContext-&gt;eglNativeWindow);esContext-&gt;height = ANativeWindow_getHeight(esContext-&gt;eglNativeWindow);</p><p>// 打开与EGL显示服务器的连接，默认为EGL_DEFAULT_DISPLAY</p><p>esContext-&gt;eglDisplay = eglGetDisplay(esContext-&gt;eglNativeDisplay);</p><p>// 如果显示连接不可用，则返回EGL_NO_DISPLAY标志，此时无法创建窗口</p><p>if (esContext-&gt;eglDisplay == EGL_NO_DISPLAY) {</p><p>return GL_FALSE;</p><p>}</p><p>// 初始化egl并回传版本号</p><p>if (!eglInitialize(esContext-&gt;eglDisplay, &amp;majorVersion, &amp;minorVersion)) {</p><p>return GL_FALSE;</p><p>}</p><p>成功打开连接后，需要初始化EGL，这通过调用如下函数完成：</p><p>EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor);</p><p>dpy —— 指定EGL显示连接</p><p>major —— 返回EGL的主版本号</p><p>minor —— 返回EGL的副版本号</p><p><b>二、确定可用表面配置</b></p><p>一旦初始化了EGL，就可以确定可用渲染表面的类型和配置，有两种方法：</p><p>查询每个表面配置，找出最好的选择</p><p>指定一组需求，让EGL推荐最佳配置</p><p>通常使用第二种方法更简单，而且最有可能得到匹配。</p><p>任何一种情况下，EGL将返回一个EGLConfig，这是包含有关特定表面及其特性(每个颜色变量分量的位数、与EGLConfig相关的深度缓冲区(如果存在))的EGL内部数据结构的标识符。</p><p>EGLint numConfigs = 0;</p><p>EGLint attribList[] = {</p><p>EGL_RED_SIZE, 5,</p><p>EGL_GREEN_SIZE, 6,</p><p>EGL_BLUE_SIZE, 5,</p><p>EGL_ALPHA_SIZE, (flags &amp; ES_WINDOW_ALPHA) ? 8 : EGL_DONT_CARE,</p><p>EGL_DEPTH_SIZE, (flags &amp; ES_WINDOW_DEPTH) ? 8 : EGL_DONT_CARE,</p><p>EGL_STENCIL_SIZE, (flags &amp; ES_WINDOW_STENCIL) ? 8 : EGL_DONT_CARE,</p><p>EGL_SAMPLE_BUFFERS, (flags &amp; ES_WINDOW_MULTISAMPLE) ? 1 : 0,</p><p>EGL_RENDERABLE_TYPE, getContextRenderableType(esContext-&gt;eglDisplay),</p><p>EGL_NONE</p><p>};</p><p>// 选择Config</p><p>if (!eglChooseConfig(esContext-&gt;eglDisplay, attribList, &amp;config, 1, &amp;numConfigs)) {</p><p>return GL_FALSE;</p><p>}</p><p>if (numConfigs &lt; 1) {</p><p>return GL_FALSE;</p><p>}</p><p><b>三、查询EGLConfig属性</b></p><p>EGLConfig包含关于EGL启用的表面的所有信息。可用颜色、与配置相关的其它缓冲区(深度和模板缓冲区等)、表面类型和其它特性</p><p>// Android需要获取EGL_NATIVE_VISUAL_ID的值并将其放如ANativeWindow_setBuffersGeometry函数中</p><p>EGLint format = 0;</p><p>eglGetConfigAttrib(esContext-&gt;eglDisplay, config, EGL_NATIVE_VISUAL_ID, &amp;format);</p><p>ANativeWindow_setBuffersGeometry(esContext-&gt;eglNativeWindow, 0, 0, format);</p><p><b>四、创建屏幕上的渲染区域：EGL窗口</b></p><p>EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy,</p><p>EGLConfig config,</p><p>EGLNativeWindowType win,</p><p>const EGLint *attrib_list);</p><p>该函数用于创建一个窗口，以我们得到的原生显示管理器的连接和前一步得到的EGLConfig为参数。它需要原生窗口系统事先创建一个窗口。</p><p>创建窗口示例：</p><p>// 创建一个EGL窗口表面示例</p><p>EGLint list[] = {</p><p>EGL_RENDER_BUFFER, EGL_BACK_BUFFER, EGL_NONE</p><p>};</p><p>EGLSurface window = eglCreateWindowSurface(esContext-&gt;eglDisplay, config,</p><p>esContext-&gt;eglNativeWindow, list);</p><p>if (window == EGL_NO_SURFACE) {</p><p>switch (eglGetError()) {</p><p>case EGL_BAD_MATCH:</p><p>break;</p><p>case EGL_BAD_CONFIG:</p><p>break;</p><p>case EGL_BAD_NATIVE_WINDOW:</p><p>break;</p><p>case EGL_BAD_ALLOC:</p><p>break;</p><p>}</p><p>}</p><p>上面的代码是创建一个绘图场景，但是我们还必须完成两个步骤，才能成功地用OpenGLES绘图。然而窗口不是唯一可用的渲染表面，也可以使用屏幕外渲染区域，也就是离屏渲染。</p><p><b>屏幕外渲染区域(离屏渲染)：EGL Pbuffer</b></p><p>OpenGLES3.0除了可以进行屏幕渲染，也可以在不可见的屏幕外渲染，也就是在像素缓冲区上进行渲染，支持硬件加速。Pbuffer最常用于纹理贴图。</p><p>创建Pbuffer 和 创建EGL窗口非常相似，只有少数微笑的不同。</p><p>创建Pbuffer需要和窗口一样找到EGLConfig，并作一些修改：需要扩增EGL_SURFACE_TYPE的值，使其包含EGL_PBUFFER_BIT。</p><p>创建EGL像素缓冲区示例如下：</p><p>EGLint bufferList[] = {</p><p>EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,</p><p>EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,</p><p>EGL_RED_SIZE, 5,</p><p>EGL_GREEN_SIZE, 6,</p><p>EGL_BLUE_SIZE, 5,</p><p>EGL_DEPTH_SIZE, 1,</p><p>EGL_NONE</p><p>};</p><p>const EGLint MaxConfigs = 10;</p><p>EGLConfig configs[MaxConfigs];</p><p>EGLint numConfigs;</p><p>if (!eglChooseConfig(esContext-&gt;eglDisplay, bufferList, configs, MaxConfigs, &amp;numConfigs)) {</p><p>return GL_FALSE;</p><p>}</p><p>EGLSurface pbuffer;</p><p>EGLint attribufferList[] = {</p><p>EGL_WIDTH, 512,</p><p>EGL_HEIGHT, 512,</p><p>EGL_LARGEST_PBUFFER, EGL_TRUE,</p><p>EGL_NONE</p><p>};</p><p>pbuffer = eglCreatePbufferSurface(esContext-&gt;eglDisplay, config, attribufferList);</p><p>if (pbuffer == EGL_NO_SURFACE) {</p><p>switch (eglGetError()) {</p><p>case EGL_BAD_ALLOC:</p><p>break;</p><p>case EGL_BAD_CONFIG:</p><p>break;</p><p>case EGL_BAD_PARAMETER:</p><p>break;</p><p>case EGL_BAD_MATCH:</p><p>break;</p><p>}</p><p>}</p><p>// 检查pbuffer 分配的内存大小</p><p>EGLint width;</p><p>EGLint height;</p><p>if (!eglQuerySurface(esContext-&gt;eglDisplay, pbuffer, EGL_WIDTH, &amp;width)</p><p>|| !eglQuerySurface(esContext-&gt;eglDisplay, pbuffer, EGL_HEIGHT, &amp;height)) {</p><p>// 不能查询 surface的信息</p><p>return GL_FALSE;</p><p>}</p><p><b>五、创建渲染上下文</b></p><p>渲染上下文是OpenGLES3.0的内部数据结构，包含操作所需要的所有状态信息。它包含了对顶点着色器和片元着色器数据的引用。</p><p>// 5.创建上下文</p><p>esContext-&gt;eglContext = eglCreateContext(esContext-&gt;eglDisplay, config,</p><p>EGL_NO_CONTEXT, contextAttribs);</p><p>// 判断上下文是否创建成功</p><p>if (esContext-&gt;eglContext == EGL_NO_CONTEXT) {</p><p>return GL_FALSE;</p><p>}</p><p>// 根据之前的配置构建上下文</p><p>if (!eglMakeCurrent(esContext-&gt;eglDisplay, esContext-&gt;eglSurface, esContext-&gt;eglSurface, esContext-&gt;eglContext)) {</p><p>return GL_FALSE;</p><p>}</p><p><b>六、指定某个EGLContext为当前上下文</b></p><p>// 指定某个EGLContext为当前上下文</p><p>if (!eglMakeCurrent(esContext-&gt;eglDisplay, esContext-&gt;eglSurface,</p><p>esContext-&gt;eglSurface, esContext-&gt;eglContext)) {</p><p>return GL_FALSE;</p><p>}</p><p><b>同步渲染</b></p><p>多个图形API在单个窗口中的渲染，此时需要使用同步渲染，需要应用程序允许多个库渲染到共享窗口。</p><p>如果不止使用OpenGLES3.0渲染，则不能简单地调用glFinish来抱着个所有渲染已经发生，你可以调用：</p><p>EGLBoolean eglWaitClient()</p><p>延迟客户端的执行，直到某个API的所有渲染完成，成功返回EGL_TRUE，失败时返回EGL_FALSE并发送EGL_BAD_CURRENT_SURFACE错误</p><p>同样，如果你需要保证原生窗口系统的渲染完成，则调用如下函数：</p><p>EGLBoolean eglWaitNative(EGLint engine)</p><p>engine，指定渲染程序等待渲染完成</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

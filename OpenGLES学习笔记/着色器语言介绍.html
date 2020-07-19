@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>着色器语言介绍</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">着色器语言介绍</h1>
+        <div class="show-content">
+          <p>// 声明版本</p><p>#version 300 es</p><p>// OpenGLES着色器语言</p><p>// 默认精度</p><p>precision highp float;precision mediump int;</p><p>// 精度限定符</p><p>highp vec4 position;</p><p>varying lowp vec4 color;</p><p>mediump float specularExp;</p><p>// 统一变量Uniform</p><p>// 统一变量是类型限定符，统一变量存储应用程序通过OpenGLES API传入着色器的只读值</p><p>// 本质上一个着色器的任何参数在所有顶点或片元中都应该以统一变量的形式传入</p><p>// 在编译时已知的变量应该是常量，不是统一变量。</p><p>// 统一变量的命名空间在顶点着色器和片元着色器中是共享的，类似C语言中的static// 如果在顶点着色器和片元着色器中都声明一个统一变量，那么两个声明必须匹配</p><p>// 使用API加载统一变量时，值在顶点和片元着色器中都可用</p><p>uniform mat4 ViewProjMatrix;</p><p>uniform mat4 viewMatrix;</p><p>uniform vec3 lightPosition;</p><p>// 统一变量块，实际上是一个缓冲区对象。</p><p>// 缓冲区数据可以在多个程序中共享，但只需要设置一次。</p><p>layout(std140) uniform TransformBlock</p><p>{</p><p>mat4 matViewProj;    // 单独的统一变量块以及其内部的单独统一变量也可以指定布局限定符</p><p>layout(row_major) mat3 matNormal;</p><p>mat3 matTexGen;</p><p>};</p><p>// 布局限定符，用于指定支持统一变量块的统一缓冲对象在内存中的布局方式</p><p>// shared - 指定多个着色器活着多个程序中统一变量块的内存布局相同</p><p>// packed - 指定编译器可以优化统一变量块的内存布局。使用时必须查询偏移位置，且统一变量块无法在顶点／片元着色器或程序间共享。</p><p>// std140 - 基于OpenGLES3.0规范的"标准统一变量块布局"中定义的一组标准规则</p><p>// row_major - 矩阵在内存中以行优先顺序布局</p><p>// column_major - 矩阵在内存中以列优先顺序布局(默认)</p><p>layout(shared, column_major) uniform;</p><p>// 顶点输入变量/属性变量</p><p>// 用于指定顶点着色器每个顶点的输入</p><p>uniform mat4 u_matViewProjection;</p><p>layout(location = 0) in vec4 a_postion;</p><p>layout(location = 1) in vec3 a_color;</p><p>// 在顶点说着色器中，v_color被声明为输出变量，那么要在片元着色器中使用，则需要在片元着色器的声明名字相同的in变量</p><p>// smooth - 插值限定符，没有插值限定符时，默认插值行为是平滑着色，也就是顶点着色器输出变量在图元中进行先行插值</p><p>// flat - 平面着色。在平面着色中，图元的值没有进行插值，而是将其中一个顶点视为驱动顶点，该顶点的值被用于图元的所有片元</p><p>smooth out vec3 v_color;</p><p>// 不变性声明</p><p>// 两个着色器之间等价计算不能保证产生完全相同的结果，可能产生精度丢失的情况，</p><p>// 因此需要不变性保证多次计算输出的结果是一致的</p><p>invariant gl_Position;invariant texCoord;</p><p>// 也可以用 #pragma 指定所有变量都不变</p><p>// #pragma STDGL invariant (all)</p><p>// 结构体struct fogStruct</p><p>{</p><p>vec4 color;</p><p>float start;</p><p>float end;</p><p>} fogVar;</p><p>void main() {</p><p>// 变量</p><p>vec3 myVec3 = vec3(0.0, 1.0, 2.0);</p><p>vec3 temp;</p><p>temp = myVec3.xyz;  // temp = {0.0, 1.0, 2.0}</p><p>temp = myVec3.xxx;  // temp = {0.0, 0.0, 0.0}</p><p>temp = myVec3.zyx;  // temp = {2.0, 1.0, 0.0}</p><p>// 常量</p><p>const float zero = 0.0;</p><p>const float pi = 3.14159;</p><p>const vec4 red = vec4(1.0, 0.0, 0.0, 1.0);</p><p>// 结构体初始化，必须一一对应</p><p>fogVar = fogStruct(vec4(0.0, 1.0, 0.0, 0.0), 0.5, 2.0);</p><p>// 获取结构体变量</p><p>vec4 color = fogVar.color;</p><p>float start = fogVar.start;</p><p>float end = fogVar.end;</p><p>// 数组</p><p>float floatArray[4];</p><p>vec4 vecArray[2];</p><p>float a[4] = float[] (1.0, 2.0, 3.0, 4.0);</p><p>float b[4] = float[4] (1.0, 2.0, 3.0, 4.0);</p><p>vec2 c[2] = vec2[2](vec2(1.0), vec2(1.0));</p><p>// 运算符，大部分表现和C中的一样，乘法可以用在浮点、向量和矩阵之间进行运算</p><p>// 除了 == 和 != 外，比较运算符智能用于标量值，要比较向量可以使用内建函数</p><p>float myFloat;</p><p>vec4 myVec4;</p><p>mat4 myMat4;</p><p>myVec4 = myVec4 * myFloat;</p><p>myVec4 = myVec4 * myVec4;</p><p>myVec4 = myMat4 * myVec4;</p><p>myMat4 = myMat4 * myMat4;</p><p>myMat4 = myMat4 * myFloat;</p><p>// 控制流程语句，跟C语言一样</p><p>if (color.a &lt; 0.25) {</p><p>color *= color.a;</p><p>} else {</p><p>color = myVec4(0.0);</p><p>}</p><p>// 使用统一变量块的例子：</p><p>// 使用了声明的a_postion 和 TransformBlock缓冲区中的matViewProj</p><p>// gl_Position = matViewProj * a_position;</p><p>// 着色器的输入变量a_position 和 a_color 数据由应用程序加载。</p><p>// 本质上应用程序将为每个顶点创建一个顶点数组创建了一个顶点数组，包含了位置和颜色</p><p>gl_Position = u_matViewProjection * a_postion;</p><p>v_color = a_color;</p><p>}</p><p>// 函数声明</p><p>// 限定符</p><p>// in - 这个限定符号指定参数按值传递，函数不能修改</p><p>// inout - 这个限定符规定变量按照引用传入函数，函数中修改了该值，该变量是会跟着改变的</p><p>// out - 表示该变量的值不被传入函数，但是在函数返回时被修改</p><p>vec4 myFunc(inout float myFloat,</p><p>out vec4 myVec4,</p><p>mat4 myMat4);</p><p>// 定义一个计算基本漫反射光线的函数：</p><p>vec4 diffuse(vec3 normal, vec3 light, vec4 backColor) {</p><p>// dot 是内建函数，计算向量的点积， pow函数则是计算幂次</p><p>return baseColor * dot(normal, light);</p><p>}</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android中使用OpenGLES</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">Android中使用OpenGLES</h1>
+        <div class="show-content">
+          <p>一、通过使用Jni调用CPP的方式使用OpenGLES</p><p>1、在Android Studio(本人采用 2.3 版本) 新建一个工程，勾选 Include C++ support，如图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-67b533d77fbe28a9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-67b533d77fbe28a9.png?imageMogr2/auto-orient/strip" data-image-slug="67b533d77fbe28a9" data-width="1192" data-height="762"><br><div class="image-caption">新建工程</div>
+</div><p>如果没有Include C++ support选项，先要下载NDK并配置好</p><p>2、接下来就一路点下去创建一个新的工程即可。创建完成后，会产生一个CPP目录并且有一个ndk-lib.cpp的目录，以及CMakeLists.txt文件，CMakeLists.txt文件是cmake编译用的文件，我们将默认的cpp文件改成triangle-lib.cpp，删除创建的MainActivity中加载的库(如果在创建工程是创建了Activity的话)，修改CMakeLists.txt文件。如下所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-0c6c3d2993dd948e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-0c6c3d2993dd948e.png?imageMogr2/auto-orient/strip" data-image-slug="0c6c3d2993dd948e" data-width="831" data-height="747"><br><div class="image-caption">CMakeLists文件</div>
+</div><p>其中，add_library 方法是将当前的CPP文件编译成静态或动态库，第一个参数是库的名称，第二个参数是类型，第三个参数是编译时需要添加的文件，可以多个文件，换行添加就好。</p><p>find_library 方法是加载已经存在的库，截图中的库是默认添加的CPP使用的log库</p><p>target_link_libraries方法则是链接时需要添加的库，第一个参数是需要链接的库，后面可以跟 -llog -landoid -lEGL -lGLESv3这样的方式加载所需要的库。</p><p>3、自定义一个View，继承于GLSurfaceView，初始化时作以下设置：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-98ea09866528d7bc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-98ea09866528d7bc.png?imageMogr2/auto-orient/strip" data-image-slug="98ea09866528d7bc" data-width="424" data-height="148"><br><div class="image-caption">初始化代码</div>
+</div><p>4、上图中的TriangleRender是自定义的Renderer，代码如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-21f6fb9f7dbbfd91.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-21f6fb9f7dbbfd91.png?imageMogr2/auto-orient/strip" data-image-slug="21f6fb9f7dbbfd91" data-width="500" data-height="353"><br><div class="image-caption">自定义Renderer</div>
+</div><p><br></p><p>5、上图中的TriangleLib是一个用于管理native方法的类，代码如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-6338276bf5ea553a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-6338276bf5ea553a.png?imageMogr2/auto-orient/strip" data-image-slug="6338276bf5ea553a" data-width="527" data-height="225"><br><div class="image-caption">native方法管理类</div>
+</div><p><br></p><p>其中System.loadLibrary("triangle-lib") 中的名称跟前面add_library方法中库的名称要一致。</p><p>此时，Java层的代码已经完全实现。接下来我们需要对native方法进行实现。</p><p>6、在triangle-lib.cpp中实现TriangleLib定义的native方法,native方法就是使用OpenGLES 的API进行绘制</p><p>7、在Activity中使用自定义的View，然后在Manifest文件中对应的Activity标签下面添加对应的库，如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-5a3319898f31b842.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-5a3319898f31b842.png?imageMogr2/auto-orient/strip" data-image-slug="5a3319898f31b842" data-width="591" data-height="52"><br><div class="image-caption">添加库</div>
+</div><p>8、至此编译即可运行</p><p>二、使用Java版OpenGLES API</p><p>1、在JNI调用CPP的第4步完成，将自定义的Renderer中使用的TriangleLib类使用一个新的Java类来替代。</p><p>2、在新建的 Java类中调用Java版的OpenGLES API实现绘制</p><p>3、接下来实现上面的第7、8步</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

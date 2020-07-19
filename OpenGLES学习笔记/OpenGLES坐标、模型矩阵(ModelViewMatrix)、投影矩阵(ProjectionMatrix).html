@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGLES坐标、模型矩阵(ModelViewMatrix)、投影矩阵(ProjectionMatrix)</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">OpenGLES坐标、模型矩阵(ModelViewMatrix)、投影矩阵(ProjectionMatrix)</h1>
+        <div class="show-content">
+          <p>OpenGL有六种坐标：</p><p>物体或模型坐标系(Object or Model Coordinates)</p><p>世界坐标系(World Coordinates)</p><p>眼坐标或相机坐标(Eye (or Camera) Coordinates)</p><p>裁剪坐标系(Clip Coordinates)</p><p>标准设备坐标系(Normalized Devices Coordinates)</p><p>屏幕坐标系(Window (or Screen) Coordinates)</p><p><b>备注 ：除了以上坐标系，还有一个假想坐标系——纹理坐标系，这个坐标系不存在的，其实是一系列矩阵变换的结果，比如它能使顶点从物体或模型坐标变换到世界坐标系</b></p><p>从 Object Coordinates 到 World Coordinates 再到Camera Coordinates的变换，在OpenGL中统一称为model-View转换，初始化的时候，Object Coordinates 和 World Coordinates 还有Camera Coordinates坐标重合在原点，变换矩阵都为Identity，所以在OpenGL中用glLoadIdentity() 初始化变换矩阵栈。model-view matrix 转换points， vectors到camera坐标系</p><p>OpenGL可以只使用设备的一部分进行绘制，这个部分称为视区(Viewport)。投影得到的是视区内的坐标(投影坐标)，从投影坐标到设备坐标的计算过程就是设备变换了。</p><p>常用到的集中坐标系：</p><p>世界坐标、物体坐标、设备坐标、眼坐标、纹理坐标</p><p><b>世界坐标系：</b></p><p>是针对OpenGL来说明的，即三维坐标系x,y,z</p><p>右手笛卡尔坐标系，水平向右为x轴，向上为y轴，屏幕向外为z轴</p><p>OpenGL提供了 glTranslate*/glRotate*/glScale*三条坐标变换命令，利用OpenGL的矩阵运算命令，则可以实现任意复杂的坐标变换。</p><p><b>坐标变换矩阵栈(ModelView)</b></p><p>用来存储一系列的变换矩阵，栈顶就是当前坐标的变换矩阵，进入OpenGL管道的每个坐标(齐次坐标)都会先乘上这个矩阵，结果才是对应点在场景中的世界坐标。</p><p>VertexData —&gt;(Object Coordinates)—&gt;ModelViewMatrix —&gt;(Eye Coordinates)—&gt; ProjectionMatrix —&gt;(Clip Coordinates)—&gt;Divide by w —&gt;(Normalized Device Coordinates)—&gt;ViewportTransform—&gt;WindowCoordinates—&gt;</p><p><b>纹理坐标系</b></p><p>纹理是图片，视频等格式的一种渲染方式，图片只有通过纹理才能加载到GLES中</p><p>因此纹理坐标系是图片，视频等在手机屏幕上的坐标系，即U，V也有叫ST的。</p><p>应用初始化时，UV坐标与三维坐标系重合，可以选择绘制的模式，绘制模式包括点，线，面，且都是坐标集合里进行顺序绘制的。</p><p><b>物体坐标系</b></p><p>物体坐标系是以物体的某一个点为原点来建立的三维坐标系（世界坐标系）。仅针对该物体。物体放到场景中时，各部分经历的坐标变换矩阵相同，相对位置不变，所以可视为一个整体</p><p><b>眼坐标系或相机坐标系</b></p><p>以视点为原点，以视线的方向为Z+轴正方向的坐标系中的方向。OpenGL管道会将世界坐标先变换到眼坐标，然后进行裁剪，只有在视线范围(视见体)之内的场景才会进入下一阶段的计算。</p><p><b>裁剪坐标系</b></p><p>由眼坐标可知，OpenGL管道首先会将目标从世界坐标变换到眼坐标，然后对视线范围外的部分进行裁剪。</p><p>裁剪过程中用到投影变换矩阵栈(ProjectionMatrix)，栈顶矩阵就是当前投影变换矩阵，负责将场景各坐标变换到眼坐标，由所得到的结果是裁剪后的场景部分，称为裁剪坐标</p><p>我们上面说到了ModelViewMatrix 与ProjectionMatrix两个矩阵栈，那矩阵栈是怎么切换的呢？</p><p>用函数：glMatrixMode(GL_MODELVIEWING或GL_PROJECTION);本命令执行后参数所指矩阵栈就成为当前矩阵栈，以后的矩阵栈操纵命令将作用于它。</p><p>紧接着glMatrixMode()就是初始化矩阵，我们在上面也讲到，所有矩阵都为Identity,所以用方法glLoadIdentity()初始化矩阵。</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

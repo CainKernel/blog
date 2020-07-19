@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图元装配和光栅化</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">图元装配和光栅化</h1>
+        <div class="show-content">
+          <p>在顶点着色器处理图元顶点之后进入图元装配阶段。这一阶段，执行裁剪、透视分割和Viewport变换操作。</p><p>光栅化是将图元转换为一组二维片元的过程。片元由片元着色器处理，代表可以在屏幕上绘制的像素。</p><p>一、图元</p><p>图标是一组表示顶点位置的顶点描述，是可以用OpenGLES 中的glDrawArrays、glDrawElements、glDrawRangeElements、GLDrawArraysInstanced 和glDrawElementsInstanced 命令绘制的几何形状对象。</p><p>OpenGLES 可以绘制的图元：点、线、三角形</p><p>三角形图元</p><p>代表着描述3D应用程序渲染的几何形状对象时最常用的方法。OpenGLES支持的三角形图元有 GL_TRIANGLES、GL_TRIANGLES_STRIP、GL_TRINAGLES_FAN。类型示意图如下：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-9b93f9c132e7cb2d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-9b93f9c132e7cb2d.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">三角形图元几种类型</div>
+</div><p>GL_TRIANGLES 绘制一系列单独的三角形，共绘制 n/3 个三角形</p><p>GL_TRIANGLES_STRIP 绘制一系列相互连接的三角形，共n - 2 个三角形</p><p>GL_TRIANGLES_FAN 绘制一系列项链的三角形，共绘制 n - 2 个三角形</p><p>直线图元</p><p>OpenGLES 支持的直线图元有GL_LINES、GL_LINE_STRIP 和 GL_LINELOOP， 类型示意图如下：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-27b37bae360f0d41.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-27b37bae360f0d41.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">直线图元几种类型</div>
+</div><p>GL_LINES 绘制一系列不相连的直线，共绘制 n/2 根直线</p><p>GL_LINE_STRIP 绘制一系列相连的直线，共绘制 n - 1 跟直线</p><p>GL_LINE_LOOP 绘制一系列相连的封闭直线，共绘制 n 条直线。</p><p>直线宽度用 glLineWidth(GLfloat width) 指定</p><p>void glLineWidth(GLfloat width)</p><p>参数说明：</p><p>width : 指定线宽，以像素表示，默认宽度为1.0</p><p>查询线宽支持范围可以用如下命令查询：</p><p>GLfloat lineWidthRange[2];</p><p>glGetFoatv(GL_ALIASED_WIDTH_RANGE, lineWidthRange);</p><p>点图元</p><p>支持的点图元是GL_POINTS。点图元对指定的每个顶点绘制。通常用于粒子系统效果当作点而非正方形绘制，从而实现高效渲染。点图元是指定位置和半径的屏幕对齐的正方形。位置表示正方形的中心，半径用于计算正方形的4个坐标。</p><p>gl_PointSize 是用于顶点着色器中输出点半径的内建变量。</p><p>查询半径支持非平滑尺寸范围的限制，可以入以下命令：</p><p>GLfloat pointSizeRange[2];</p><p>glGetFloatv(GL_ALIASED_POINT_SIZE_RANGE, pointSizeRange);</p><p>OpenGLES 窗口原点(0, 0) 表示左下方，而点图元的坐标原点则表示左上方。</p><p>gl_PointCoord 是只能在渲染图元为点图元时用于片元着色器的内建变量，用mediump 精度限定符限定的vec2 变量，范围是 0～1</p><p>绘制一个带有纹理的点图元的片元着色器程序：</p><p>#version 300 es</p><p>precision mediump float;</p><p>uniform sampler2D s_texSprite;</p><p>layout(location = 0) out vec4 outColor;</p><p>void main() {</p><p>outColor = texture(s_texSprite, gl_PointCoord);</p><p>}</p><p>二、绘制图元</p><p>void glDrawArrays(GLenum mode, GLint first,  GLsizei count)</p><p>参数说明</p><p>mode : 指定要渲染的图元，GL_POINTS、GL_LINES、GL_LINE_STRIP、GL_LINE_LOOP、GL_TRIANGLES、GL_TRIANGLES_STRIP、GL_TRIANGLE_FAN</p><p>first : 指定启用的顶点数组中的起始顶点索引</p><p>count : 指定要绘制的顶点数量</p><p>备注：使用glDrawArrays 绘制多面体，共享的点必须重复计算。因此，使用glDrawArrays 绘制立方体需要的是24个或36个顶点，而不是8个顶点。</p><p>void glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices)</p><p>void glDrawElements(GLenum mode. GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices)</p><p>参数说明：</p><p>mode : 指定要渲染的图元</p><p>start : 指定indices 中的最小数组索引</p><p>end : 指定indices 中的最大数组索引</p><p>count : 指定要绘制的索引数量</p><p>type : 指定indices 中保存的元素索引类型，GL_UNSIGNED_BYTE、GL_UNSIGNED_SHORT、GL_UNSIGNED_INT</p><p>indices : 指向元素索引存储位置的指针</p><p>glDrawArrays 和 glDrawElements 区别</p><p>glDrawArrays ：传输或指定的数据是真实数据，则绘制时效率更高，但比较吃内存/显存。图形较少／图形很多相同，则更节省空间</p><p>glDrawElements : 指定的是索引，更节省内存/显存。图形多且形状不相同时优先考虑。</p><p>图元重启</p><p>使用图元重启可以在一次绘图调用中渲染多个不相连的图元(如三角形／条形带)，能够降低绘图API调用的开销。图元重启的另一种方法时生成退化三角形，但方法不够简洁。</p><p>可以通过在索引列表中插入一个特殊索引来重启一个用于索引绘图调用的图元实现。</p><p>这个特殊索引时该索引类型的最大可能索引，GL_UNSIGNED_BYTE为255，GL_UNSIGNED_SHORT为65535</p><p>启用和禁用图元重启：</p><p>// 启用图元</p><p>glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);</p><p>// 绘制图元</p><p>…</p><p>// 禁用图元</p><p>glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);</p><p>驱动顶点</p><p>如果没有限定符，那么顶点着色器的输出值在图元中使用线性插值。但是使用平面着色时没有发生插值。因为没有发生插值，所以片元着色器中只有一个顶点值可用。对于给定的图元实例，驱动顶点确定使用顶点着色器的哪个顶点输出，因为只能使用一个顶点。</p><p>驱动顶点选择规则如下：</p><p>GL_POINTS         i</p><p>GL_LINES            2i</p><p>GL_LINE_LOOP   如果 i &lt; n, 为 i + 1，i = n，为1</p><p>GL_LINE_STRIP   i + 1</p><p>GL_TRIANGLES   3i</p><p>GL_TRIANGLES_STRIP i + 2</p><p>GL_TRIANGLES_FAN    i + 2</p><p>几何形状实例化</p><p>几何形状实例化可以用一次API调用多次渲染具有不同属性的一个对象。这一功能在渲染大量类似对象时很有用，几何图形实例化降低了想OpenGLES 引擎发送许多 API 调用的CPU处理开销。</p><p>void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount);</p><p>void glDrawElementsInstanced(GLenum mode, GLsizei num, GLenum type, const GLvoid *indices, GLsizei instanceCount);</p><p>访问每个实例数据的方法：</p><p>1、使用 glVertexAttribDivisor</p><p>void glVertexAttribDivisor(GLuint index, GLuint divisor)</p><p>参数说明</p><p>index : 指定通用顶点属性索引</p><p>divisor : 指定index位置的通用属性更新之间传递的实例数量</p><p>2、使用哪件输入变量gl_InstanceID</p><p>性能提示</p><p>应用程序应该确保用尽可能大的图元尺寸调用glDrawElements 和 glDrawElementsInstanced。如果绘制GL_TRIANGLES，这很容易做到。但如果有三角形条带或扇形的网格，则可以用图元重启将这些网格连接在一起，而不用对每个三角形条带网格单独调用glDrawElements*。</p><p>如果无法使用图元重启机制将网格连接在一起(为了维护与旧版本OpenGLES的兼容性)，可以添加造成退化三角形的元素索引，代价是使用更多的索引，并且需要注意这里讨论的一些事项。退化三角形是两个或者更多顶点相同的三角形。GPU可以非常简单地检测和拒绝退化三角形，所以这是很好的性能改进，我们可以将一个很大的图元放入由GPU渲染的队列。</p><p>三、图元装配</p><p>通过glDraw*** 提供的顶点由顶点着色器执行，顶点着色器变换的每个顶点包括描述顶点(x, y, z, w)值的顶点位置。图元类型和顶点索确定将被渲染的单独图元。对于每个单独图元及其对应的顶点，图元装配阶段执行的操作包括：将顶点着色器的输出值执行裁剪、透视分割、视口变换后进入光栅化阶段。</p><p>坐标系统</p><p>顶点以物体或者本地坐标空间输入到OpenGLES，这是最可能用来建模和存储一个对象的坐标空间。在顶点着色器执行之后，顶点位置被认为是在裁剪坐标空间内。顶点位置从本地坐标系统(也就是物体坐标) 到裁剪坐标的变换通过加载执行这一行转换的对应矩阵来完成，这些矩阵保存在顶点着色器中定义的对应统一变量中。</p><p>下图展示了通过顶点着色器和图元装配阶段时的坐标系统。</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-7750d7a97854ff03.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-7750d7a97854ff03.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>裁剪</p><p>为了避免在可视景体之外处理图元，图元被裁剪到裁剪空间。执行顶点着色器之后的顶点位置处于裁剪坐标空间内。裁剪坐标是由(x, y, z, w)指定的同类坐标。在裁剪空间(x, y, z, w)中定义的顶点坐标根据视景体裁剪。下图是一个裁剪体，由6个裁剪平面定义，称作近、远、左、右、上、下裁剪平面。</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-9103a65f17b18e1d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-9103a65f17b18e1d.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">视景体</div>
+</div><p>裁剪阶段将把每个图元裁剪为上图所示的裁剪体。对于每种图元类型，执行以下操作：</p><p>裁剪三角形 —— 如果三角形完全在视景体内部，则不执行任何裁剪。如果三角形完全在视景体外，则该三角形被放弃。如果三尖形部分在视景体内，则根据相应的屏幕裁剪三角形。裁剪操作将生成新的顶点，这些顶点被裁剪到三角扇形的平面。</p><p>裁剪直线 —— 直线完全在视景体内部，则不执行任何裁剪。如果直线完全在视景体之外，则该直线被放弃。</p><p>裁剪点 —— 如果点位置在近平面或远平面之外，则被抛弃。否则将不做变化地通过该阶段。</p><p>顶点坐标经过透视裁剪分割之后，变成规范化的设备坐标。规范化的设备坐标范围是 -1.0 到 1.0。</p><p>透视分割</p><p>透视分割将裁剪坐标(x, yy, z, w) 指定的点投影到屏幕或者视口上。投影动作将(x, y, z)执行(x/w)、(y/w)、(z/w) 之后，我们得到规范化的设备坐标(x’, y‘, z’)。这些坐标被称为规范化设备坐标。这些规范化的坐标根据视口的大小将被转换为真正的屏幕(或窗口)坐标。规范化的z坐标将用glDepthRangef 指定的near 和far深度值转换为屏幕的z值。这些转换在视口变换阶段进行。</p><p>视口变换</p><p>视口是一个二维举行窗口区域，是所有OpenGLES渲染操作最终显示的地方。视口变换可用如下API调用谁在</p><p>void glViewport(GLint x, GLint y, GLsizei w, GLsizei h)</p><p>x, y, 指定视口左下角的窗口坐标，以像素表示</p><p>w, h,指定视口的宽度和高度，这些值必须大于0</p><p>从规范化设备坐标(xd, yd, zd)到窗口坐标(sw, yw, zw)的变换如下:</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-6da35bd4eb343d93.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-6da35bd4eb343d93.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">坐标变换</div>
+</div><p>在这个变换中， ox = x + w／ 2， oy = y + h / 2， n和f代表所需的深度范围</p><p>void glDepthRangef(GLclampf n, GLclampf f)</p><p>n, f 指定所需的深度范围。n和f 的默认值分别为0.0 和 1.0。这两个值限于(0.0, 1.0)区间内。</p><p>初始视口状体被设置为w = width，h = height，分别为OpenGLES渲染应用程序创建的窗口的宽度和高度。</p><p>四、光栅化</p><p>下图是光栅化管线。在顶点变换和图元裁剪之后，光栅化管线取得单独图元并为该图元生成对应的片段。每个片段由屏幕空间中的整数位置(x, y)标识。</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-e9ab1f1f948d8ac3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-e9ab1f1f948d8ac3.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">光栅化</div>
+</div><p>剔除</p><p>在三角形被光栅化之前，我们需要确定它们是正面还是背面。剔除(Culling) 操作抛弃背向观看者的三角形。要确定三角形是正面还是背面，首先要知道它的方向。</p><p>三角形的方向指定从第一个顶点开始，经过第二个和第三个顶点，最后回到第一个顶点的弯曲方向或者路径顺序。</p><p>三角形根据方向可以分为顺时针方向(CW)和逆时针方向(CCW)，如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-d91f8638e5c5141e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-d91f8638e5c5141e.png?imageMogr2/auto-orient/strip"><br><div class="image-caption">三角形方向示意图</div>
+</div><p>映射方向可以通过调用glFrontFace指定</p><p>void glFrontFace(GLenum dir)</p><p>参数说明：</p><p>dir : 指定正面三角形的方向，GL_CW、GL_CCW，默认值为GL_CCW</p><p>剔除三角形的面，可以通过调用glCullFace 指定</p><p>void glCullFace(GLenum dir)</p><p>参数说明：</p><p>dir : 指定正面三角形的方向，GL_FRONT、GL_BACK 和 GL_FRONT_AND_BACK，默认值为GL_BACK</p><p>要知道剔除操作可以通过glEnable 和 glDisable 启用／禁用</p><p>void  glEnable(GLenum cap)</p><p>void glDisable(GLenum cap)</p><p>参数说明：</p><p>cap ：GL_CULL_FACE，默认情况下，剔除被禁用</p><p>备注：剔除应该始终启用，以避免GPU浪费时间去光栅化不可见的三角形。能够改善程序的整体性能。</p><p>多边形偏移</p><p>绘制两个重叠多边形，很可能产生伪像，这是因为光栅化的精度有限产生的，使用的参数和生成的片元深度值有限精度再好也无法完全解决这个问题。</p><p>为了避免产生这个问题，我们需要在执行深度测试和深度值写入深度缓冲区之前，在计算出来的深度值上添加一个偏移量。如果深度测试通过，使用原始的深度值。</p><p>多边形偏移用如下API调用设置：</p><p>void glPolygonOffset(GLfloat factor, GLfloat units)</p><p>深度偏移的计算如下：</p><p>深度偏移 = m * 因数 + r * 单位数</p><p>m 是三角形最大深度斜率，即 m = max{ |az/ax|, |ax/ay| }</p><p>斜率项在三角形光栅化阶段期间由OpenGLES 实现计算， r是OpenGLES实现定义的常量，代表深度值中可以保证产生差异的最小值。</p><p>五、遮挡查询</p><p>遮挡查询用查询对象来跟踪通过深度测试的任何片元或样本。这种方法可用于不同的技术，例如镜头炫光特效的可见性测试以及避免在包围体背遮挡的不可见对象上进行几何状处理的优化。</p><p>遮挡查询可以分别在GL_ANY_SAMPLES_PASSED 或 GL_ANY_SAMPLES_PASSED_CONSERVATIVE 目标上用glBeginQuery 和 glEndQuery 开始和结束</p><p>void glBeginQuery(GLenum target, GLuint id)</p><p>void glEndQuery(GLenum target)</p><p>参数说明：</p><p>target ：指定查询对象的目标类型，GL_ANY_SAMPLES_PASSED、GL_ANY_SAMPLES_PASSED_CONSERVATIVE、GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN</p><p>id ：指定查询对象的名称</p><p>id 用 glGenQueries创建，用glDeleteQueries删除</p><p>void glGenQueries(GLsizei n, GLuint *ids)</p><p>n ：指定生成的查询名称对象的数量</p><p>ids ： 指定一个数组，以存储查询名称对象的列表。</p><p>void glDeleteQueries(GLsizei n, const GLuint *ids)</p><p>n ：指定要删除的查询名称对象的数量</p><p>ids ：指定一个需要删除的查询名称对象的列表数组</p><p>在用glBeginQuery 和 glEndQuery 指定查询对象边界之后，可以使用 glGetQueryObjectuiv 检索查询对象的结果。</p><p>void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)</p><p>参数说明</p><p>target ：指定查询对象名称</p><p>pname ： 指定需要检索的查询对象参数，可以为GL_QUERY_RESULT 或 GL_QUERY_RESULT_AVAILABLE</p><p>params ： 指定存储返回参数值的对应类型的数组</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

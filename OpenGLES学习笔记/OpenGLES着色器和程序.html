@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGLES着色器和程序</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">OpenGLES着色器和程序</h1>
+        <div class="show-content">
+          <p>需要创建两个基本对象才能用着色器进行渲染：着色器对象和程序对象，类似编译器和链接程序。</p><p>编译之后，着色器对象可以链接到一个程序对象，程序对象可以链接到多个着色器对象。</p><p>在OpenGLES中，每个程序对象必须链接一个顶点着色器和一个片元着色器。程序对象被链接为用于渲染的最后“可执行程序”</p><p>获得链接后的着色器对象一般包括6个步骤：</p><p>1、创建一个顶点着色器对象和一个片段着色器对象</p><p>2、将源代码链接到每个着色器对象</p><p>3、编译着色器对象</p><p>4、创建一个program对象</p><p>5、将编译后的着色器对象链接到程序对象</p><p>6、链接程序对象</p><p>如果没有出错，就可以在任何时候通知EGL使用这个程序绘图。</p><p>一、创建和编译一个顶点着色器和一个片元着色器对象</p><p>创建着色器采用glCreateShader完成，当完成着色器对象时可以用glDeleteShader删除，创建完成，调用glShaderSource将着色器字符串加载成OpenGLES能够识别的源代码。生成源代码后，接下来就是使用glCompileShader函数编译。然后使用glGetShaderiv函数查询编译是否出现错误。如果编译错误，则需要再次调用该方法查询日志信息的长度判断是否有日志产生，并分配一个足以存储日志信息的字符串。然后用glGetShaderInfoLog检索日志信息。对此封装成的代码如下：</p><p>GLuint loadShader(GLenum type, const char* shaderSrc) {</p><p>GLuint shader;    GLint compiled;</p><p>// 创建shader</p><p>shader = glCreateShader(type);</p><p>if (shader == 0) {</p><p>return 0;</p><p>}</p><p>// 加载着色器的源码</p><p>glShaderSource(shader, 1, &amp;shaderSrc, nullptr);</p><p>// 编译源码</p><p>glCompileShader(shader);</p><p>// 检查编译状态</p><p>glGetShaderiv(shader, GL_COMPILE_STATUS, &amp;compiled);</p><p>if (!compiled) {</p><p>GLint  infoLen = 0;</p><p>// 查询日志的长度判断是否有日志产生</p><p>glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &amp;infoLen);</p><p>if (infoLen &gt; 1) {</p><p>// 分配一个足以存储日志信息的字符串</p><p>char* infoLog = (char *) malloc(sizeof(char) * infoLen);</p><p>// 检索日志信息</p><p>glGetShaderInfoLog(shader, infoLen, nullptr, infoLog);</p><p>ALOGE("Error compiling shader:\n%s\n", infoLog);</p><p>// 使用完成后需要释放字符串分配的任务</p><p>free(infoLog);</p><p>}</p><p>// 删除编译出错的着色器释放内存</p><p>glDeleteShader(shader);</p><p>return 0;</p><p>}</p><p>return shader;</p><p>}</p><p>二、创建和链接程序</p><p>创建着色器对象之后，下一步就是创建一个program对象。program对象是一个容器对象，可以将着色器与之相连，并链接一个最终可执行的程序。</p><p>流程如下：使用glCreateProgram创建一个程序对象，可以使用glDeleteProgram删除一个program对象，program对象创建完成后，下一步就是将着色器与之相连，此时调用glAttachShader函数来链接一个顶点着色器和一个片元着色器，可以使用glDetachShader断开着色器的链接。链接完成后，接下来需要用glLinkProgram负责生成最终的可执行程序。为了确保能生成最终的可执行程序，需要确保成功链接，因此需要调用glGetProgramiv函数来完成检查链接的状态，如果链接失败，则需要调用glGetProgramInfoLog函数获取出错的日志信息。成功链接后，你可以检查程序是否有效，可以使用glValidateProgram函数以当前的状态执行。但这个方法仅仅用于调试，因为这是一个速度很慢的操作，不建议在正式发表的程序中使用。</p><p>因此，创建并链接着色器程序的代码可以封装成如下：</p><p>GLuint loadProgram(const char* vertexShader, const char* fragShader) {</p><p>GLuint vertex;</p><p>GLuint fragment;</p><p>GLuint program;</p><p>GLint linked;</p><p>//加载顶点shader</p><p>vertex = loadShader(GL_VERTEX_SHADER, vertexShader);</p><p>if (vertex == 0) {</p><p>return 0;</p><p>}</p><p>// 加载片元着色器</p><p>fragment = loadShader(GL_FRAGMENT_SHADER, fragShader);</p><p>if (fragment == 0) {</p><p>glDeleteShader(vertex);</p><p>return 0;</p><p>}</p><p>// 创建program</p><p>program = glCreateProgram();</p><p>if (program == 0) {</p><p>glDeleteShader(vertex);</p><p>glDeleteShader(fragment);</p><p>return 0;</p><p>}</p><p>// 绑定shader</p><p>glAttachShader(program, vertex);</p><p>glAttachShader(program, fragment);</p><p>// 链接program程序</p><p>glLinkProgram(program);</p><p>// 检查链接状态</p><p>glGetProgramiv(program, GL_LINK_STATUS, &amp;linked);</p><p>if (!linked) {</p><p>GLint infoLen = 0;</p><p>// 检查日志信息长度</p><p>glGetProgramiv(program, GL_INFO_LOG_LENGTH, &amp;infoLen);</p><p>if (infoLen &gt; 1) {</p><p>// 分配一个足以存储日志信息的字符串</p><p>char* infoLog = (char *) malloc(sizeof(char) * infoLen);</p><p>// 检索日志信息</p><p>glGetProgramInfoLog(program, infoLen, nullptr, infoLog);</p><p>ALOGE("Error linking program:\n%s\n", infoLog);</p><p>// 使用完成后需要释放字符串分配的内存</p><p>free(infoLog);</p><p>}</p><p>// 删除着色器释放内存</p><p>glDeleteShader(vertex);</p><p>glDeleteShader(fragment);</p><p>glDeleteProgram(program);</p><p>return 0;</p><p>}</p><p>// 删除着色器释放内存</p><p>glDeleteShader(vertex);</p><p>glDeleteShader(fragment);</p><p>return program;</p><p>}</p><p>统一变量和属性</p><p>一旦链接程序对象，就可以在对象上进行许多查询。</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

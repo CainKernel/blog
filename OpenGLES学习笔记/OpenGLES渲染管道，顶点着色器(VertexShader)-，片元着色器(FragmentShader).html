@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGLES渲染管道，顶点着色器(VertexShader) ，片元着色器(FragmentShader)</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">OpenGLES渲染管道，顶点着色器(VertexShader) ，片元着色器(FragmentShader)</h1>
+        <div class="show-content">
+          <p>着色器只能用在OpenGLES 2.X以上等可编程管道里，而在OpenGLES 1.X是不能使用的。<br></p><p>管线，Pipeline，显卡执行的、从几何体到最终渲染图像的、数据传输处理计算的过程</p><p>OpenGLES1.X中它是固定管道，整体式封闭的，中间的各道工艺按固定的流程顺序走。如图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-50ac00c9c8b96e53.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-50ac00c9c8b96e53.jpeg?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>从上图可以看出，这些工艺顺序是固定的，整个过程又分为：处理顶点，处理片元，验证片元信息并存入内存</p><p>Rasterizer：光栅化处理，当顶点处理完，会交给rasterizer来进行光栅化处理，结果会吧顶点的坐标信息转换成能在屏幕显示的像素信息，即片元(Fragments)</p><p>生成片元后，接下来就是对fragments片元的各种验证，即过滤掉无用的片元，裁剪掉不在视野内的片元，最终把有效片元存储入内存中。</p><p>光栅化处理过程，就是把矢量图转化成像素点的过程。我们屏幕上显示的画面都是由像素组成，而三维物体都是点线面构成的。要让点线面变成能在屏幕上显示的像素，就需要Rasterizer这个过程。</p><p>OpenGLES2.X可编程管道，由两VertexShader(顶点着色器)、FragmentsShader(片元着色器)组成，分别对应上图中的Coordinates 和Texture等蓝色块</p><p>OpenGLES2.0可渲染管道图：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-9e90b9b3684b265e.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-9e90b9b3684b265e.jpeg?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p><b>VertexShader：顶点着色器</b></p><p>顶点着色器输入包括：</p><p>着色器程序——描述顶点上执行操作的顶点着色器程序源代码或者可执行文件</p><p>顶点着色器输入(或属性)——用顶点数组提供的每个顶点的数据</p><p>统一变量(uniform)——顶点(或片段)着色器使用的不变数据</p><p>采样器——代表顶点着色器使用纹理的 特殊统一变量类型</p><p>顶点着色器的输出在OpenGLES2.0称作可变变量(varying)，但在OpenGLES3.0中改名为顶点着色器输出变量。</p><p>在光栅化阶段，为每个生成的片段计算顶点着色器输出值，并作为输入传递给片段着色器。</p><p>插值：光栅器对从顶点着色器传递的变量进行插值</p><p>为了在屏幕上真正显示，必须将顶点着色器vs的输出变量设置为gl_Position，gl_Position是一个保存着顶点齐次坐标的4维向量。ZYZ分量被W分量分割(称作视角分割)并且XYZ分量上超过单位化盒子([-1, 1])的部分会被裁剪掉。最终的结果会被转换到屏幕坐标系然后三角形(或其它图元类型)被光栅器生成对应的像素。</p><p>OpenGLES3.0新增了一个功能——变换反馈，使顶点着色器输出可以选择性地写入一个输出缓冲区(除了传递给片段着色器之外，也可用这种传递替代)</p><p>顶点着色器的输入和输出如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-bd1247517dc67489.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-bd1247517dc67489.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>先看看脚本：</p><p>private final String mVertexShader =</p><p>"uniform mat4 uMVPMatrix;\n" +</p><p>"attribute vec4 aPosition;\n" +</p><p>“attribute vec4 a_color;\n” +</p><p>"attribute vec2 aTextureCoord;\n" +</p><p>"varying vec2 vTextureCoord;\n” +</p><p>“out vec4 v_color;\n"</p><p>"void main() {\n" +</p><p>" gl_Position = uMVPMatrix * aPosition;\n" +</p><p>" vTextureCoord = aTextureCoord;\n" +</p><p>“ v_color = a_color;\n"</p><p>"}\n";</p><p>private final String mFragmentShader =</p><p>"precision mediump float;\n" +</p><p>"varying vec2 vTextureCoord;\n" +</p><p>"uniform sampler2D sTexture;\n" +</p><p>"void main() {\n" +</p><p>"gl_FragColor = texture2D(sTexture, vTextureCoord);\n” +</p><p>"}\n”;</p><p>其中脚本语句关键字：</p><p>attribute：使用顶点数组封装每个顶点的数据，一般用于每个顶点都各不相同的变量，如顶点位置、颜色等</p><p>uniform：顶点着色器使用的常量数据，不能被着色器修改，一般用于对同一组顶点组成的单个3D物体中所有顶点都有相同的变量，如当前光源位置</p><p>sampler：这是可选的，一种特殊的uniform，表示顶点着色器使用的纹理</p><p>mat4：表示4x4浮点数矩阵，该变量存储了组合模型视图和投影矩阵</p><p>vec4：表示包含了4个浮点数的向量</p><p>varying：用于从顶点着色器传递到片元或FragmentsShader传递到下一步的输出变量</p><p>uMVPMatrix * aPosition：通过4x4 的变换位置后，输出给gl_Position，gl_Position是顶点着色器内置的输出变量。</p><p>gl_FragColor：片元着色器内置的输出变量</p><p><b>PrimitiveAssembly：图元装配</b></p><p>图元即图形，在OpenGL有几个基本图元：点、线、三角形，其他的复杂图元都是基于这些基本图元来绘制而成。</p><p>在图元装配阶段，那些经过顶点着色器(VertexShader)处理过的顶点数组或缓冲区的数据(VertexArrays/BufferObjects)，被组装到一个个独立的几何图形中(点，线，三角形)</p><p>对装配好的没个图元，都必须确保它在世界坐标系中，而对于不在世界坐标系中的图元，就必须进行裁剪，使其处于在世界坐标系中才能流到下一道工序(光栅化处理)</p><p>这里还有一个剔除操作(Cull)，前提是这个功能的开关是打开的：GLES20.glEnable(GLES20.GL_CULL_FACE); 剔除的是图元的背影，阴影，背面等。</p><p><b>Rasterization：光栅化</b></p><p>光栅化阶段绘制对应的图元(点、线、三角形)，将图元转化为一组二维数组的过程，然后传递给片段着色器处理。这些二维数组代表屏幕上绘制的像素</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-0ebaf86ccdc89cb5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-0ebaf86ccdc89cb5.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>(PS：上图中的点精灵光栅化应该是点光栅化)</p><p><b>FragmentShader：片元着色器</b></p><p>片元着色器主要是对光栅化处理后生成的片元逐个进行处理。接收顶点着色器输出的值，需要传入的数据，以及它经过变换矩阵后输出值存储位置。</p><p>着色器程序——描述片元所执行的片元着色器程序源代码</p><p>输入变量——光栅器对顶点着色器插值后的输出值</p><p>统一变量——片元(或顶点)着色器使用的不变的数据</p><p>采样器——代表片元着色器所用纹理的一种特殊的统一变量类型</p><p>片元着色器输入和输出关系如下图所示：</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-bd09365b009b917f.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-bd09365b009b917f.jpeg?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>因为光栅化处理后，图元只是在屏幕上有了像素，却没有进行颜色处理，还是看不到东西。</p><p>因此FragmentsShader主要的作用是告诉GPU如何处理光照、阴影、遮挡、环境等，然后将结果输出到gl_FragColor变量中</p><p>FragmentsShader只输出一个颜色值——gl_FragColor，是片元着色器内置的输出变量</p><p>片元着色器脚本示例：</p><p>#version 300 es</p><p>precision mediump float; // 设置精度限定符</p><p>in vec4 v_color;</p><p>out vec4 fragColor;</p><p>void main()</p><p>{</p><p>fragColor = v_color;</p><p>gl_FragColor = fragColor;</p><p>}</p><p>光栅化阶段生成的颜色、深度、模板和屏幕坐标位置(Xw, Yw)将会变成逐片元操作阶段的输入值</p><p>Pre-Fragment Operations：逐片元操作阶段</p><p>在片元着色器对片元进行综合的处理，并最终为片元生成一个颜色值，并储存在gl_FragColor变量后，接下来就是逐个对片元进行一些列的测试。</p><p>光栅化处理时，它由于时把顶点从世界坐标系转换到屏幕坐标系，因此在光栅处理后，每个片元在屏幕上都有个坐标(Xw, Yw)。且存储在了帧缓冲区(FrameBuffer)，</p><p>包括片元着色器也是对(Xw, Yw)这个坐标的片元进行处理</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/2103804-bb79837436c95a56.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/2103804-bb79837436c95a56.jpeg?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>Pixel ownership test——像素归属测试，它决定FrameBuffer中某个(Xw, Yw)位置的像素是否属于当前Context</p><p>Scissor test——裁剪测试，决定一个位置(Xw, Yw)的片元是否位于裁剪举行内，如果不在，则被丢弃</p><p>Stencil test/Depth test——模版和深度测试，传入片元的模板和深度值，决定是否丢弃片</p><p>Blending——混合，将FragmentShader 新产生的片元颜色值和FrameBuffer中某个位置(Xw, Yw)的片元存储的颜色值进行混合</p><p>Dithering——抖动，对可用颜色较少的系统，可以牺牲分辨率为代价，通过颜色值的抖动来增加可用颜色值。抖动操作和硬件相关，OpenGL允许程序员所有的操作就只有打开或关闭都懂操作。默认情况下抖动是激活的</p><p>在逐片元操作阶段的最后，片元要么被舍弃，要么将颜色、深度、模板值写入到帧缓冲区(Xw, Yw)位置，写入的值取决于启用的写入掩码</p><p>写入掩码可以更精细地控制写入的颜色、深度、模板值。</p><p>备注：Alpha测试和逻辑操作不再是逐片元操作的一部分，这两个阶段存在于OpenGL2.0盒OpenGL1.x中。</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
